@@ -11,13 +11,33 @@ import uuid
 import requests
 import paypalrestsdk
 from django.conf import settings
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 
 
 BASE_URL = settings.REACT_BASE_URL
 # Create your views here.
+@api_view(['POST'])
+def register_user(request):
+    username = request.data.get('username')
+    email = request.data.get('email')
+    password = request.data.get('password')
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
+    phone = request.data.get('phone')
+    city = request.data.get('city')
+    state = request.data.get('state') 
 
+
+    if User.objects.filter(username=username).exists():
+        return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = User.objects.create_user(username=username, email=email, first_name=first_name, last_name=last_name, phone=phone, city=city, state=state, password=password)
+    user.save()
+    return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
 
 paypalrestsdk.configure({
     "mode":settings.PAYPAL_MODE,
